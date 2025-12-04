@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>ESP32 Soil Station</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  body {background:#111; color:#0f0; font-family:Arial; text-align:center; margin:0; }
+  h1 {color:#0f0;}
+  .chart {width:95%; max-width:1000px; margin:20px auto;}
+</style>
+</head><body>
+<h1>ESP32 – Моніторинг ґрунту</h1>
+<div id="temp" class="chart"></div>
+<div id="hum" class="chart"></div>
+<div id="soil" class="chart"></div>
+<div id="last">Очікування даних...</div>
+
+<script>
+const API = "/history";
+function update() {
+  fetch(API).then(r => r.json()).then(data => {
+    if (data.length === 0) return;
+    const times = data.reverse().map(d => new Date(d.time).toLocaleTimeString());
+
+    Plotly.react('temp', [{y: data.map(d => d.temp), x: times, name: 'Температура °C', line:{color:'#ff4444'}}], {title: 'Температура', paper_bgcolor:'#111', plot_bgcolor:'#111', font:{color:'#0f0'}});
+    Plotly.react('hum',  [{y: data.map(d => d.hum),  x: times, name: 'Вологість повітря %', line:{color:'#4488ff'}}], {title: 'Вологість повітря', paper_bgcolor:'#111', plot_bgcolor:'#111', font:{color:'#0f0'}});
+    Plotly.react('soil', [{y: data.map(d => d.soil), x: times, name: 'Вологість ґрунту (0-4095)', line:{color:'#ffaa00'}}], {title: 'Вологість ґрунту', paper_bgcolor:'#111', plot_bgcolor:'#111', font:{color:'#0f0'}});
+
+    const last = data[data.length-1];
+    document.getElementById('last').innerHTML = `
+      <b>Останнє оновлення:</b> ${new Date(last.time).toLocaleString()}<br>
+      Температура: <b>${last.temp}°C</b> Вологість: <b>${last.hum}%</b> Ґрунт: <b>${last.soil}</b>
+    `;
+  });
+}
+update();
+setInterval(update, 10000);
+</script>
+</body></html>

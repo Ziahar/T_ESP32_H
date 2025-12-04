@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+databases[sqlite]
+sqlalchemy
+pydantic
